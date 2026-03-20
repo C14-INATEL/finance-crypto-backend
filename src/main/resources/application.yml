@@ -1,0 +1,16 @@
+jwt:
+  public:
+    key: classpath:app.pub
+  private:
+    key: classpath:app.key
+
+spring:
+  datasource:
+    url: jdbc:postgresql://localhost:5432/finance_crypto_db
+    username: postgres
+    password: admin
+    driver-class-name: org.postgresql.Driver
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: true
