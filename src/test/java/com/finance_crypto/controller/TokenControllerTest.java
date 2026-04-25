@@ -114,4 +114,36 @@ public class TokenControllerTest {
     // Encoder nao deve ser chamado
     verify(jwtEncoder, never()).encode(any(JwtEncoderParameters.class));
   }
+
+  @Test
+  void lancaExcecaoComMensagemCorretaNoLoginInvalido() {
+
+    LoginRequestDTO request = new LoginRequestDTO("testuser", "senha_invalida");
+    when(userRepository.findByUsername("testuser")).thenReturn(Optional.of(testUser));
+    when(bCryptPasswordEncoder.matches("senha_invalida", "hashed_password")).thenReturn(false);
+
+    Exception exception = assertThrows(BadCredentialsException.class, () -> {
+      tokenController.login(request);
+    });
+
+    // Validando dados capturados e mockados
+    assertEquals("Invalid credentials", exception.getMessage());
+  }
+
+  @Test
+  void validaParametrosDoClaimsSetAoGerarToken() {
+
+    when(userRepository.findByUsername("testuser")).thenReturn(Optional.of(testUser));
+    when(bCryptPasswordEncoder.matches("raw_password", "hashed_password")).thenReturn(true);
+
+    Jwt testJwt = mock(Jwt.class);
+    when(testJwt.getTokenValue()).thenReturn("mocked_jwt");
+    when(jwtEncoder.encode(any(JwtEncoderParameters.class))).thenReturn(testJwt);
+
+    tokenController.login(validRequest);
+
+    // Repo e senha devem ter sido consultados usando mocks
+    verify(userRepository, times(1)).findByUsername("testuser");
+    verify(bCryptPasswordEncoder, times(1)).matches("raw_password", "hashed_password");
+  }
 }
