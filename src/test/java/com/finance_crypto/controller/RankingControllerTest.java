@@ -87,4 +87,56 @@ class RankingControllerTest {
         assertTrue(response.isEmpty());
         verify(rankingService, times(1)).obterRankingCalculado();
     }
+
+    @Test
+    void deveLancarExcecaoQuandoServicoDePrejuizoFalhar() {
+        // Arrange: Prepara o mock
+        RankingService rankingService = mock(RankingService.class);
+        RankingController controller = new RankingController();
+
+        try {
+            var field = RankingController.class.getDeclaredField("rankingService");
+            field.setAccessible(true);
+            field.set(controller, rankingService);
+        } catch (Exception e) {
+            fail("Não foi possível injetar o mock no controller");
+        }
+
+        // Simula que o service disparou um erro genérico
+        when(rankingService.obterAtivosComPrejuizo()).thenThrow(new RuntimeException("Erro interno no servidor"));
+
+        // Act & Assert: Valida se a exceção foi repassada corretamente
+        RuntimeException exception = assertThrows(RuntimeException.class, () -> {
+            controller.obterAtivosComPrejuizo();
+        });
+
+        assertEquals("Erro interno no servidor", exception.getMessage());
+        verify(rankingService, times(1)).obterAtivosComPrejuizo();
+    }
+
+    @Test
+    void deveLancarExcecaoQuandoServicoDeRankingFalhar() {
+        // Arrange: Prepara o mock
+        RankingService rankingService = mock(RankingService.class);
+        RankingController controller = new RankingController();
+
+        try {
+            var field = RankingController.class.getDeclaredField("rankingService");
+            field.setAccessible(true);
+            field.set(controller, rankingService);
+        } catch (Exception e) {
+            fail("Não foi possível injetar o mock no controller");
+        }
+
+        // Simula erro no cálculo do ranking
+        when(rankingService.obterRankingCalculado()).thenThrow(new RuntimeException("Falha ao calcular ranking"));
+
+        // Act & Assert: Apenas garante que a exceção estourou e o service foi chamado
+        assertThrows(RuntimeException.class, () -> {
+            controller.obterRanking();
+        });
+
+        verify(rankingService, times(1)).obterRankingCalculado();
+    }
 }
+
