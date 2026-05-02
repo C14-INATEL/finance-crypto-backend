@@ -38,4 +38,53 @@ class RankingControllerTest {
         assertEquals("SOL", response.get(0).getSimbolo());
         verify(rankingService, times(1)).obterAtivosComPrejuizo();
     }
+
+    @Test
+    void deveRetornarRankingComSucessoQuandoServiceRetornarDados() {
+        RankingService rankingService = mock(RankingService.class);
+        RankingController controller = new RankingController();
+
+        try {
+            var field = RankingController.class.getDeclaredField("rankingService");
+            field.setAccessible(true);
+            field.set(controller, rankingService);
+        } catch (Exception e) {
+            fail("Não foi possível injetar o mock no controller");
+        }
+
+        List<RankingAtivoDTO> mockLista = List.of(
+            new RankingAtivoDTO("BTC", 300000.0, 350000.0, 16.6)
+        );
+        
+        when(rankingService.obterRankingCalculado()).thenReturn(mockLista);
+
+        List<RankingAtivoDTO> response = controller.obterRanking();
+
+        assertNotNull(response);
+        assertEquals(1, response.size());
+        assertEquals("BTC", response.get(0).getSimbolo());
+        verify(rankingService, times(1)).obterRankingCalculado();
+    }
+
+    @Test
+    void deveRetornarListaVaziaQuandoNaoHouverAtivosNoService() {
+        RankingService rankingService = mock(RankingService.class);
+        RankingController controller = new RankingController();
+
+        try {
+            var field = RankingController.class.getDeclaredField("rankingService");
+            field.setAccessible(true);
+            field.set(controller, rankingService);
+        } catch (Exception e) {
+            fail("Não foi possível injetar o mock no controller");
+        }
+
+        when(rankingService.obterRankingCalculado()).thenReturn(List.of());
+
+        List<RankingAtivoDTO> response = controller.obterRanking();
+
+        assertNotNull(response);
+        assertTrue(response.isEmpty());
+        verify(rankingService, times(1)).obterRankingCalculado();
+    }
 }
