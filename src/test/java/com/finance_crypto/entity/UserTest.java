@@ -11,45 +11,40 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
-import com.finance_crypto.controller.dto.LoginRequestDTO;
+import com.finance_crypto.dto.LoginRequestDTO;
 
 @ExtendWith(MockitoExtension.class)
 public class UserTest {
 
-  private User user;
+    private User user;
 
-  @Mock
-  private PasswordEncoder passwordEncoder;
+    @Mock
+    private PasswordEncoder passwordEncoder;
 
-  @BeforeEach
-  void setUp() {
-    // Cria mocks
-    user = new User();
-    user.setUsername("testuser");
-    user.setPassword("hashed_password");
-  }
+    @BeforeEach
+    void setUp() {
+        user = new User();
+        user.setUsername("testuser");
+        user.setPassword("hashed_password");
+    }
 
-  @Test
-  void encoderConfirmaDadosValidos() {
+    @Test
+    void encoderConfirmaDadosValidos() {
+        LoginRequestDTO request = new LoginRequestDTO("testuser", "correct_password");
+        when(passwordEncoder.matches("correct_password", "hashed_password")).thenReturn(true);
 
-    LoginRequestDTO request = new LoginRequestDTO("testuser", "correct_password");
-    when(passwordEncoder.matches("correct_password", "hashed_password")).thenReturn(true);
+        boolean result = user.isLoginCorrect(request, passwordEncoder);
 
-    boolean result = user.isLoginCorrect(request, passwordEncoder);
+        assertTrue(result);
+    }
 
-    // Permite login
-    assertTrue(result, "O login deve ser válido quando a senha está correta e bate com o hash (codificação).");
-  }
+    @Test
+    void encoderNaoConfirmaDadosInvalidos() {
+        LoginRequestDTO request = new LoginRequestDTO("testuser", "wrong_password");
+        when(passwordEncoder.matches("wrong_password", "hashed_password")).thenReturn(false);
 
-  @Test
-  void encoderNaoConfirmaDadosInvalidos() {
+        boolean result = user.isLoginCorrect(request, passwordEncoder);
 
-    LoginRequestDTO request = new LoginRequestDTO("testuser", "wrong_password");
-    when(passwordEncoder.matches("wrong_password", "hashed_password")).thenReturn(false);
-
-    boolean result = user.isLoginCorrect(request, passwordEncoder);
-
-    // Nao permite login
-    assertFalse(result, "O login precisa ser considerado inválido se a senha fornecida não for idêntica à do banco.");
-  }
+        assertFalse(result);
+    }
 }
