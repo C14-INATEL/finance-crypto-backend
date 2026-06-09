@@ -3,7 +3,6 @@ package com.finance_crypto.controller;
 import com.finance_crypto.dto.RankingAtivoDTO;
 import com.finance_crypto.service.RankingService;
 import org.junit.jupiter.api.Test;
-import org.springframework.http.ResponseEntity;
 
 import java.util.List;
 
@@ -15,19 +14,11 @@ class RankingControllerTest {
     @Test
     void deveRetornarAtivosComPrejuizoPeloController() {
         RankingService rankingService = mock(RankingService.class);
-        RankingController controller = new RankingController();
+        RankingController controller = new RankingController(rankingService);
 
         List<RankingAtivoDTO> prejuizos = List.of(
                 new RankingAtivoDTO("SOL", 500.0, 450.0, -10.0)
         );
-
-        try {
-            var field = RankingController.class.getDeclaredField("rankingService");
-            field.setAccessible(true);
-            field.set(controller, rankingService);
-        } catch (Exception e) {
-            fail("Não foi possível injetar o mock no controller");
-        }
 
         when(rankingService.obterAtivosComPrejuizo()).thenReturn(prejuizos);
 
@@ -42,20 +33,12 @@ class RankingControllerTest {
     @Test
     void deveRetornarRankingComSucessoQuandoServiceRetornarDados() {
         RankingService rankingService = mock(RankingService.class);
-        RankingController controller = new RankingController();
-
-        try {
-            var field = RankingController.class.getDeclaredField("rankingService");
-            field.setAccessible(true);
-            field.set(controller, rankingService);
-        } catch (Exception e) {
-            fail("Não foi possível injetar o mock no controller");
-        }
+        RankingController controller = new RankingController(rankingService);
 
         List<RankingAtivoDTO> mockLista = List.of(
-            new RankingAtivoDTO("BTC", 300000.0, 350000.0, 16.6)
+                new RankingAtivoDTO("BTC", 300000.0, 350000.0, 16.6)
         );
-        
+
         when(rankingService.obterRankingCalculado()).thenReturn(mockLista);
 
         List<RankingAtivoDTO> response = controller.obterRanking();
@@ -69,15 +52,7 @@ class RankingControllerTest {
     @Test
     void deveRetornarListaVaziaQuandoNaoHouverAtivosNoService() {
         RankingService rankingService = mock(RankingService.class);
-        RankingController controller = new RankingController();
-
-        try {
-            var field = RankingController.class.getDeclaredField("rankingService");
-            field.setAccessible(true);
-            field.set(controller, rankingService);
-        } catch (Exception e) {
-            fail("Não foi possível injetar o mock no controller");
-        }
+        RankingController controller = new RankingController(rankingService);
 
         when(rankingService.obterRankingCalculado()).thenReturn(List.of());
 
@@ -90,22 +65,11 @@ class RankingControllerTest {
 
     @Test
     void deveLancarExcecaoQuandoServicoDePrejuizoFalhar() {
-        // Arrange: Prepara o mock
         RankingService rankingService = mock(RankingService.class);
-        RankingController controller = new RankingController();
+        RankingController controller = new RankingController(rankingService);
 
-        try {
-            var field = RankingController.class.getDeclaredField("rankingService");
-            field.setAccessible(true);
-            field.set(controller, rankingService);
-        } catch (Exception e) {
-            fail("Não foi possível injetar o mock no controller");
-        }
-
-        // Simula que o service disparou um erro genérico
         when(rankingService.obterAtivosComPrejuizo()).thenThrow(new RuntimeException("Erro interno no servidor"));
 
-        // Act & Assert: Valida se a exceção foi repassada corretamente
         RuntimeException exception = assertThrows(RuntimeException.class, () -> {
             controller.obterAtivosComPrejuizo();
         });
@@ -116,22 +80,11 @@ class RankingControllerTest {
 
     @Test
     void deveLancarExcecaoQuandoServicoDeRankingFalhar() {
-        // Arrange: Prepara o mock
         RankingService rankingService = mock(RankingService.class);
-        RankingController controller = new RankingController();
+        RankingController controller = new RankingController(rankingService);
 
-        try {
-            var field = RankingController.class.getDeclaredField("rankingService");
-            field.setAccessible(true);
-            field.set(controller, rankingService);
-        } catch (Exception e) {
-            fail("Não foi possível injetar o mock no controller");
-        }
-
-        // Simula erro no cálculo do ranking
         when(rankingService.obterRankingCalculado()).thenThrow(new RuntimeException("Falha ao calcular ranking"));
 
-        // Act & Assert: Apenas garante que a exceção estourou e o service foi chamado
         assertThrows(RuntimeException.class, () -> {
             controller.obterRanking();
         });
@@ -139,4 +92,3 @@ class RankingControllerTest {
         verify(rankingService, times(1)).obterRankingCalculado();
     }
 }
-
