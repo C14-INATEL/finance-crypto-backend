@@ -15,6 +15,15 @@ import org.junit.jupiter.api.Test;
 
 import com.finance_crypto.dto.RankingAtivoDTO;
 import com.finance_crypto.service.RankingService;
+import com.finance_crypto.dto.RankingAtivoDTO;
+import com.finance_crypto.service.RankingService;
+import org.junit.jupiter.api.Test;
+import org.springframework.http.ResponseEntity;
+
+import java.util.List;
+
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.*;
 
 class RankingControllerTest {
 
@@ -24,6 +33,20 @@ class RankingControllerTest {
         RankingController controller = new RankingController(rankingService);
 
         List<RankingAtivoDTO> prejuizos = List.of(new RankingAtivoDTO("SOL", 500.0, 450.0, -10.0));
+        RankingController controller = new RankingController();
+
+        List<RankingAtivoDTO> prejuizos = List.of(
+                new RankingAtivoDTO("SOL", 500.0, 450.0, -10.0)
+        );
+
+        try {
+            var field = RankingController.class.getDeclaredField("rankingService");
+            field.setAccessible(true);
+            field.set(controller, rankingService);
+        } catch (Exception e) {
+            fail("Não foi possível injetar o mock no controller");
+        }
+
         when(rankingService.obterAtivosComPrejuizo()).thenReturn(prejuizos);
 
         List<RankingAtivoDTO> response = controller.obterAtivosComPrejuizo();
@@ -40,6 +63,20 @@ class RankingControllerTest {
         RankingController controller = new RankingController(rankingService);
 
         List<RankingAtivoDTO> mockLista = List.of(new RankingAtivoDTO("BTC", 300000.0, 350000.0, 16.6));
+        RankingController controller = new RankingController();
+
+        try {
+            var field = RankingController.class.getDeclaredField("rankingService");
+            field.setAccessible(true);
+            field.set(controller, rankingService);
+        } catch (Exception e) {
+            fail("Não foi possível injetar o mock no controller");
+        }
+
+        List<RankingAtivoDTO> mockLista = List.of(
+            new RankingAtivoDTO("BTC", 300000.0, 350000.0, 16.6)
+        );
+        
         when(rankingService.obterRankingCalculado()).thenReturn(mockLista);
 
         List<RankingAtivoDTO> response = controller.obterRanking();

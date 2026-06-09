@@ -8,6 +8,12 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.finance_crypto.dto.RankingAtivoDTO;
 import com.finance_crypto.service.RankingService;
+import com.finance_crypto.dto.RankingAtivoDTO;
+import com.finance_crypto.service.RankingService;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @RestController
 @RequestMapping("/api/ranking")
@@ -18,6 +24,8 @@ public class RankingController {
     public RankingController(RankingService rankingService) {
         this.rankingService = rankingService;
     }
+    @Autowired
+    private RankingService rankingService;
 
     @GetMapping("/lucrativos")
     public List<RankingAtivoDTO> obterRanking() {
@@ -28,4 +36,5 @@ public class RankingController {
     public List<RankingAtivoDTO> obterAtivosComPrejuizo() {
         return rankingService.obterAtivosComPrejuizo();
     }
+}
 }
