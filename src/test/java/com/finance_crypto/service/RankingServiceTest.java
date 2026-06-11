@@ -1,23 +1,78 @@
 package com.finance_crypto.service;
 
 import com.finance_crypto.dto.RankingAtivoDTO;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.web.client.RestTemplate;
 
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
+@ExtendWith(MockitoExtension.class)
 class RankingServiceTest {
 
-    private final RankingService rankingService = new RankingService();
+    private static final String COINGECKO_RESPONSE_JSON = """
+            [
+              {
+                "id": "bitcoin",
+                "symbol": "btc",
+                "name": "Bitcoin",
+                "current_price": 352841.00,
+                "market_cap_rank": 1,
+                "price_change_percentage_24h": 3.12502
+              },
+              {
+                "id": "ethereum",
+                "symbol": "eth",
+                "name": "Ethereum",
+                "current_price": 18500.00,
+                "market_cap_rank": 2,
+                "price_change_percentage_24h": -1.07
+              }
+            ]
+            """;
+
+    @Mock
+    private RestTemplate restTemplate;
+
+    @InjectMocks
+    private RankingService rankingService;
+
+    @Test
+    @DisplayName("Deve retornar dados formatados a partir da resposta da API CoinGecko")
+    void deveRetornarDadosDaApiCoinGecko() {
+        // Arrange
+        when(restTemplate.getForObject(anyString(), eq(String.class)))
+                .thenReturn(COINGECKO_RESPONSE_JSON);
+
+        // Act
+        List<RankingAtivoDTO> resultado = rankingService.obterRankingCalculado();
+
+        // Assert
+        assertNotNull(resultado);
+        assertFalse(resultado.isEmpty());
+        assertEquals("BTC", resultado.get(0).getSimbolo().toUpperCase());
+        assertEquals(352841.00, resultado.get(0).getPrecoBrl());
+        assertEquals(3.12502, resultado.get(0).getPercentualLucro(), 0.001); 
+        
+        // Verifica se a chamada HTTP falsa foi realmente disparada
+        verify(restTemplate).getForObject(anyString(), eq(String.class));
+    }
 
     @Test
     void deveCalcularLucroCorretamenteQuandoPrecoAtualForMaior() {
         double precoCompra = 100.0;
         double precoAtual = 150.0;
-
         double resultado = rankingService.calcularPorcentagemLucro(precoCompra, precoAtual);
-
         assertEquals(50.0, resultado, "O lucro deveria ser de 50%");
     }
 
@@ -25,9 +80,7 @@ class RankingServiceTest {
     void deveCalcularPrejuizoCorretamenteQuandoPrecoAtualForMenor() {
         double precoCompra = 100.0;
         double precoAtual = 80.0;
-
         double resultado = rankingService.calcularPorcentagemLucro(precoCompra, precoAtual);
-
         assertEquals(-20.0, resultado, "O prejuízo deveria ser de -20%");
     }
 
@@ -35,53 +88,20 @@ class RankingServiceTest {
     void deveRetornarZeroQuandoPrecoCompraForInvalido() {
         double precoCompra = 0.0;
         double precoAtual = 150.0;
-
         double resultado = rankingService.calcularPorcentagemLucro(precoCompra, precoAtual);
-
         assertEquals(0.0, resultado, "Deve retornar 0 para evitar divisão por zero");
     }
 
     @Test
-    void deveRetornarListaDeRankingPreenchida() {
-        List<RankingAtivoDTO> ranking = rankingService.obterRankingCalculado();
-
-        assertNotNull(ranking, "A lista de ranking não pode ser nula");
-        assertFalse(ranking.isEmpty(), "A lista de ranking não deve estar vazia");
-    }
-
-    @Test
-    void deveRetornarTresAtivosNoRanking() {
-        List<RankingAtivoDTO> ranking = rankingService.obterRankingCalculado();
-
-        assertNotNull(ranking);
-        assertEquals(3, ranking.size());
-    }
-
-    @Test
-    void deveRetornarBtcComoPrimeiroAtivo() {
-        List<RankingAtivoDTO> ranking = rankingService.obterRankingCalculado();
-
-        assertEquals("BTC", ranking.get(0).getSimbolo());
-        assertEquals(16.6, ranking.get(0).getPercentualLucro(), 0.001);
-    }
-
-    @Test
-    void deveConterAtivoComPrejuizo() {
-        List<RankingAtivoDTO> ranking = rankingService.obterRankingCalculado();
-
-        boolean existePrejuizo = ranking.stream()
-                .anyMatch(ativo -> ativo.getPercentualLucro() < 0);
-
-        assertTrue(existePrejuizo);
-    }
-
-    @Test
     void deveRetornarSomenteAtivosComPrejuizo() {
+        when(restTemplate.getForObject(anyString(), eq(String.class)))
+                .thenReturn(COINGECKO_RESPONSE_JSON);
+
         List<RankingAtivoDTO> ativosComPrejuizo = rankingService.obterAtivosComPrejuizo();
 
         assertNotNull(ativosComPrejuizo);
         assertEquals(1, ativosComPrejuizo.size());
-        assertEquals("SOL", ativosComPrejuizo.get(0).getSimbolo());
-        assertEquals(-10.0, ativosComPrejuizo.get(0).getPercentualLucro(), 0.001);
+        assertEquals("ETH", ativosComPrejuizo.get(0).getSimbolo().toUpperCase());
+        assertEquals(-1.07, ativosComPrejuizo.get(0).getPercentualLucro(), 0.001); 
     }
 }
