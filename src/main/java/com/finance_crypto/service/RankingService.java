@@ -15,10 +15,6 @@ import java.util.stream.Collectors;
 @Service
 public class RankingService {
 
-    // -----------------------------------------------------------------
-    // URL completa da API — static para ser referenciável nos testes
-    // com eq(RankingService.COINGECKO_URL) se necessário no futuro.
-    // -----------------------------------------------------------------
     static final String COINGECKO_URL =
             "https://api.coingecko.com/api/v3/coins/markets" +
             "?vs_currency=brl" +
@@ -31,33 +27,20 @@ public class RankingService {
     private final RestTemplate restTemplate;
     private final ObjectMapper objectMapper;
 
-    // -----------------------------------------------------------------
-    // Construtor principal — o @InjectMocks do Mockito usa este para
-    // injetar o RestTemplate mockado sem precisar de contexto Spring.
-    // -----------------------------------------------------------------
     public RankingService(RestTemplate restTemplate) {
         this.restTemplate   = restTemplate;
         this.objectMapper   = new ObjectMapper();
     }
 
-    // =================================================================
-    // MÉTODO REFATORADO — remove hardcode, passa a consumir a API real
-    // =================================================================
-
     public List<RankingAtivoDTO> obterRankingCalculado() {
         String json = restTemplate.getForObject(COINGECKO_URL, String.class);
 
-        // Comportamento defensivo: API retornou nulo ou vazio
         if (json == null || json.isBlank()) {
             return Collections.emptyList();
         }
 
         return parsearResposta(json);
     }
-
-    // =================================================================
-    // MÉTODOS ORIGINAIS — preservados intactos
-    // =================================================================
 
     public List<RankingAtivoDTO> obterAtivosComPrejuizo() {
         return obterRankingCalculado()
@@ -66,31 +49,11 @@ public class RankingService {
                 .collect(Collectors.toList());
     }
 
-    /**
-     * Calcula variação percentual entre preço de compra e preço atual.
-     *
-     * Assinatura confirmada pelos testes:
-     *   calcularPorcentagemLucro(100.0, 150.0) → 50.0   (lucro)
-     *   calcularPorcentagemLucro(100.0, 80.0)  → -20.0  (prejuízo)
-     *   calcularPorcentagemLucro(0.0,   150.0) →  0.0   (guarda divisão por zero)
-     */
     public double calcularPorcentagemLucro(double precoCompra, double precoAtual) {
         if (precoCompra == 0) return 0.0;
         return ((precoAtual - precoCompra) / precoCompra) * 100;
     }
 
-    // =================================================================
-    // PARSE PRIVADO — converte JSON do CoinGecko em List<RankingAtivoDTO>
-    // =================================================================
-
-    /**
-     * Mapeamento de campos (JSON CoinGecko → RankingAtivoDTO):
-     *
-     *   symbol                       → simbolo          (forçado uppercase)
-     *   current_price                → precoAtual
-     *   price_change_percentage_24h  → percentualLucro
-     *   precoMedioCompra             → 0.0 (não existe na API; campo de carteira)
-     */
     private List<RankingAtivoDTO> parsearResposta(String json) {
         List<RankingAtivoDTO> lista = new ArrayList<>();
 
@@ -106,10 +69,6 @@ public class RankingService {
                 double  precoAtual     = node.path("current_price").asDouble(0.0);
                 double  percentual24h  = node.path("price_change_percentage_24h").asDouble(0.0);
 
-                // precoMedioCompra não existe na API do CoinGecko — é um dado
-                // de carteira do usuário. Inicializado como 0.0 aqui; quando
-                // a feature de carteira for implementada, este valor virá do
-                // repositório do usuário e sobrescreverá este padrão.
                 double precoMedioCompra = 0.0;
 
                 lista.add(new RankingAtivoDTO(

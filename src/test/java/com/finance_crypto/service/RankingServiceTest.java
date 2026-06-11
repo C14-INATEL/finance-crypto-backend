@@ -47,10 +47,6 @@ class RankingServiceTest {
     @InjectMocks
     private RankingService rankingService;
 
-    // ==================================================================
-    // TESTES NOVOS: INTEGRAÇÃO COM API COINGECKO (FASE RED -> GREEN)
-    // ==================================================================
-
     @Test
     @DisplayName("Deve retornar dados formatados a partir da resposta da API CoinGecko")
     void deveRetornarDadosDaApiCoinGecko() {
@@ -72,7 +68,6 @@ class RankingServiceTest {
         verify(restTemplate).getForObject(anyString(), eq(String.class));
     }
 
-
     @Test
     void deveCalcularLucroCorretamenteQuandoPrecoAtualForMaior() {
         double precoCompra = 100.0;
@@ -88,12 +83,25 @@ class RankingServiceTest {
         double resultado = rankingService.calcularPorcentagemLucro(precoCompra, precoAtual);
         assertEquals(-20.0, resultado, "O prejuízo deveria ser de -20%");
     }
-}
 
     @Test
-    void deveRetornarZeroQuandoPrecoCompraForZero() {
+    void deveRetornarZeroQuandoPrecoCompraForInvalido() {
         double precoCompra = 0.0;
         double precoAtual = 150.0;
         double resultado = rankingService.calcularPorcentagemLucro(precoCompra, precoAtual);
         assertEquals(0.0, resultado, "Deve retornar 0 para evitar divisão por zero");
     }
+
+    @Test
+    void deveRetornarSomenteAtivosComPrejuizo() {
+        when(restTemplate.getForObject(anyString(), eq(String.class)))
+                .thenReturn(COINGECKO_RESPONSE_JSON);
+
+        List<RankingAtivoDTO> ativosComPrejuizo = rankingService.obterAtivosComPrejuizo();
+
+        assertNotNull(ativosComPrejuizo);
+        assertEquals(1, ativosComPrejuizo.size());
+        assertEquals("ETH", ativosComPrejuizo.get(0).getSimbolo().toUpperCase());
+        assertEquals(-1.07, ativosComPrejuizo.get(0).getPercentualLucro(), 0.001); 
+    }
+}
