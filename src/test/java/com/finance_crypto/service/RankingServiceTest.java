@@ -43,6 +43,7 @@ class RankingServiceTest {
 
     @Mock
     private RestTemplate restTemplate;
+    private PortfolioService portfolioService;
 
     @InjectMocks
     private RankingService rankingService;
@@ -91,4 +92,6 @@ class RankingServiceTest {
         double resultado = rankingService.calcularPorcentagemLucro(precoCompra, precoAtual);
         assertEquals(0.0, resultado, "Deve retornar 0 para evitar divisão por zero");
     }
+
+    
 }
