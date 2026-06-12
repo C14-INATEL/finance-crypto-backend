@@ -2,9 +2,7 @@ package com.finance_crypto.controller;
 
 import com.finance_crypto.dto.RankingAtivoDTO;
 import com.finance_crypto.service.RankingService;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
@@ -19,12 +17,8 @@ public class RankingController {
     }
 
     @GetMapping("/lucrativos")
-    public List<RankingAtivoDTO> obterRanking() {
-        return rankingService.obterRankingCalculado();
-    }
-
-    @GetMapping("/prejuizos")
-    public List<RankingAtivoDTO> obterAtivosComPrejuizo() {
-        return rankingService.obterAtivosComPrejuizo();
+    public List<RankingAtivoDTO> obterLucrativos(@RequestParam(defaultValue = "1") Long usuarioId) {
+        // Passamos o ID do usuário para o serviço fazer o cruzamento de dados
+        return rankingService.obterRankingAtivos(usuarioId);
     }
 }
