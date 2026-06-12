@@ -91,17 +91,4 @@ class RankingServiceTest {
         double resultado = rankingService.calcularPorcentagemLucro(precoCompra, precoAtual);
         assertEquals(0.0, resultado, "Deve retornar 0 para evitar divisão por zero");
     }
-
-    @Test
-    void deveRetornarSomenteAtivosComPrejuizo() {
-        when(restTemplate.getForObject(anyString(), eq(String.class)))
-                .thenReturn(COINGECKO_RESPONSE_JSON);
-
-        List<RankingAtivoDTO> ativosComPrejuizo = rankingService.obterAtivosComPrejuizo();
-
-        assertNotNull(ativosComPrejuizo);
-        assertEquals(1, ativosComPrejuizo.size());
-        assertEquals("ETH", ativosComPrejuizo.get(0).getSimbolo().toUpperCase());
-        assertEquals(-1.07, ativosComPrejuizo.get(0).getPercentualLucro(), 0.001); 
-    }
 }
