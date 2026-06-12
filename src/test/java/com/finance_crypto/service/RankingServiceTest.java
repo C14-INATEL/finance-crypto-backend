@@ -88,7 +88,6 @@ class RankingServiceTest {
         double resultado = rankingService.calcularPorcentagemLucro(precoCompra, precoAtual);
         assertEquals(-20.0, resultado, "O prejuízo deveria ser de -20%");
     }
-}
 
     @Test
     void deveRetornarZeroQuandoPrecoCompraForZero() {
@@ -97,3 +96,4 @@ class RankingServiceTest {
         double resultado = rankingService.calcularPorcentagemLucro(precoCompra, precoAtual);
         assertEquals(0.0, resultado, "Deve retornar 0 para evitar divisão por zero");
     }
+}
