@@ -61,9 +61,9 @@ class RankingServiceTest {
         assertNotNull(resultado);
         assertFalse(resultado.isEmpty());
         assertEquals("BTC", resultado.get(0).getSimbolo().toUpperCase());
-        assertEquals(352841.00, resultado.get(0).getPrecoBrl());
-        assertEquals(3.12502, resultado.get(0).getPercentualLucro(), 0.001); 
-        
+        assertEquals(352841.00, resultado.get(0).getPrecoAtual());
+        assertEquals(3.12502, resultado.get(0).getPercentualLucro(), 0.001);
+
         // Verifica se a chamada HTTP falsa foi realmente disparada
         verify(restTemplate).getForObject(anyString(), eq(String.class));
     }
@@ -102,6 +102,6 @@ class RankingServiceTest {
         assertNotNull(ativosComPrejuizo);
         assertEquals(1, ativosComPrejuizo.size());
         assertEquals("ETH", ativosComPrejuizo.get(0).getSimbolo().toUpperCase());
-        assertEquals(-1.07, ativosComPrejuizo.get(0).getPercentualLucro(), 0.001); 
+        assertEquals(-1.07, ativosComPrejuizo.get(0).getPercentualLucro(), 0.001);
     }
 }
