@@ -47,10 +47,6 @@ class RankingServiceTest {
     @InjectMocks
     private RankingService rankingService;
 
-    // ==================================================================
-    // TESTES NOVOS: INTEGRAÇÃO COM API COINGECKO (FASE RED -> GREEN)
-    // ==================================================================
-
     @Test
     @DisplayName("Deve retornar dados formatados a partir da resposta da API CoinGecko")
     void deveRetornarDadosDaApiCoinGecko() {
@@ -72,7 +68,6 @@ class RankingServiceTest {
         verify(restTemplate).getForObject(anyString(), eq(String.class));
     }
 
-
     @Test
     void deveCalcularLucroCorretamenteQuandoPrecoAtualForMaior() {
         double precoCompra = 100.0;
@@ -90,7 +85,7 @@ class RankingServiceTest {
     }
 
     @Test
-    void deveRetornarZeroQuandoPrecoCompraForZero() {
+    void deveRetornarZeroQuandoPrecoCompraForInvalido() {
         double precoCompra = 0.0;
         double precoAtual = 150.0;
         double resultado = rankingService.calcularPorcentagemLucro(precoCompra, precoAtual);
