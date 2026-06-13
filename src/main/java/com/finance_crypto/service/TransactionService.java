@@ -2,6 +2,7 @@ package com.finance_crypto.service;
 
 import com.finance_crypto.repository.TransactionRepository;
 import org.springframework.stereotype.Service;
+import com.finance_crypto.entity.Transaction;
 
 @Service
 public class TransactionService {
