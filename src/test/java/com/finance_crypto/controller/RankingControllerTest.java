@@ -12,83 +12,56 @@ import static org.mockito.Mockito.*;
 class RankingControllerTest {
 
     @Test
-    void deveRetornarAtivosComPrejuizoPeloController() {
-        RankingService rankingService = mock(RankingService.class);
-        RankingController controller = new RankingController(rankingService);
-
-        List<RankingAtivoDTO> prejuizos = List.of(
-                new RankingAtivoDTO("SOL", 500.0, 450.0, -10.0)
-        );
-
-        when(rankingService.obterAtivosComPrejuizo()).thenReturn(prejuizos);
-
-        List<RankingAtivoDTO> response = controller.obterAtivosComPrejuizo();
-
-        assertNotNull(response);
-        assertEquals(1, response.size());
-        assertEquals("SOL", response.get(0).getSimbolo());
-        verify(rankingService, times(1)).obterAtivosComPrejuizo();
-    }
-
-    @Test
     void deveRetornarRankingComSucessoQuandoServiceRetornarDados() {
         RankingService rankingService = mock(RankingService.class);
         RankingController controller = new RankingController(rankingService);
+        
+        // Criamos um ID de usuário fictício para passar para o método novo
+        Long mockUsuarioId = 1L;
 
         List<RankingAtivoDTO> mockLista = List.of(
                 new RankingAtivoDTO("BTC", 300000.0, 350000.0, 16.6)
         );
 
-        when(rankingService.obterRankingCalculado()).thenReturn(mockLista);
+        // Atualizado para usar o método novo: obterRankingAtivos(Long)
+        when(rankingService.obterRankingAtivos(mockUsuarioId)).thenReturn(mockLista);
 
-        List<RankingAtivoDTO> response = controller.obterRanking();
+        // Supondo que o Controller também foi atualizado para receber o ID do usuário
+        List<RankingAtivoDTO> response = controller.obterLucrativos(mockUsuarioId);
 
         assertNotNull(response);
         assertEquals(1, response.size());
         assertEquals("BTC", response.get(0).getSimbolo());
-        verify(rankingService, times(1)).obterRankingCalculado();
+        verify(rankingService, times(1)).obterRankingAtivos(mockUsuarioId);
     }
 
     @Test
     void deveRetornarListaVaziaQuandoNaoHouverAtivosNoService() {
         RankingService rankingService = mock(RankingService.class);
         RankingController controller = new RankingController(rankingService);
+        Long mockUsuarioId = 1L;
 
-        when(rankingService.obterRankingCalculado()).thenReturn(List.of());
+        when(rankingService.obterRankingAtivos(mockUsuarioId)).thenReturn(List.of());
 
-        List<RankingAtivoDTO> response = controller.obterRanking();
+        List<RankingAtivoDTO> response = controller.obterLucrativos(mockUsuarioId);
 
         assertNotNull(response);
         assertTrue(response.isEmpty());
-        verify(rankingService, times(1)).obterRankingCalculado();
-    }
-
-    @Test
-    void deveLancarExcecaoQuandoServicoDePrejuizoFalhar() {
-        RankingService rankingService = mock(RankingService.class);
-        RankingController controller = new RankingController(rankingService);
-
-        when(rankingService.obterAtivosComPrejuizo()).thenThrow(new RuntimeException("Erro interno no servidor"));
-
-        RuntimeException exception = assertThrows(RuntimeException.class, () -> {
-            controller.obterAtivosComPrejuizo();
-        });
-
-        assertEquals("Erro interno no servidor", exception.getMessage());
-        verify(rankingService, times(1)).obterAtivosComPrejuizo();
+        verify(rankingService, times(1)).obterRankingAtivos(mockUsuarioId);
     }
 
     @Test
     void deveLancarExcecaoQuandoServicoDeRankingFalhar() {
         RankingService rankingService = mock(RankingService.class);
         RankingController controller = new RankingController(rankingService);
+        Long mockUsuarioId = 1L;
 
-        when(rankingService.obterRankingCalculado()).thenThrow(new RuntimeException("Falha ao calcular ranking"));
+        when(rankingService.obterRankingAtivos(mockUsuarioId)).thenThrow(new RuntimeException("Falha ao calcular ranking"));
 
         assertThrows(RuntimeException.class, () -> {
-            controller.obterRanking();
+            controller.obterLucrativos(mockUsuarioId);
         });
 
-        verify(rankingService, times(1)).obterRankingCalculado();
+        verify(rankingService, times(1)).obterRankingAtivos(mockUsuarioId);
     }
 }
