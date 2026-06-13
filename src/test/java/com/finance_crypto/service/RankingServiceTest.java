@@ -56,7 +56,7 @@ class RankingServiceTest {
                 .thenReturn(COINGECKO_RESPONSE_JSON);
 
         // Act
-        List<RankingAtivoDTO> resultado = rankingService.obterRankingCalculado();
+        List<RankingAtivoDTO> resultado = rankingService.obterRankingAtivos(1L);
 
         // Assert
         assertNotNull(resultado);
